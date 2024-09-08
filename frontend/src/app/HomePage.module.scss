@@ -1,0 +1,77 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    align-items: center;
+  }
+  
+  .h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    color: #fff;
+  }
+  
+  .nftItem {
+    display: flex;
+    align-items: flex-start;
+    background-color: #333;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .nftDetails {
+    flex: 2;
+    padding-right: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .benefitContainer {
+    flex: 3;
+  }
+  
+  .benefitItem {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    justify-content: space-between;
+  }
+  
+  .benefitThumbnail {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-left: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  .benefitItem h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+  
+  .benefitItem p {
+    margin: 5px 0 0 0;
+    color: #fff;
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 768px) {
+    .nftItem {
+      flex-direction: column;
+    }
+  
+    .benefitThumbnail {
+      margin: 10px 0;
+      width: 80px;
+      height: 80px;
+    }
+  }
+  

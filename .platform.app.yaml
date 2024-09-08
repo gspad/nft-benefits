@@ -1,0 +1,25 @@
+# Frontend application
+frontend:
+  type: 'nodejs:20'
+  build:
+    flavor: 'nextjs'
+  web:
+    commands:
+      start: 'npm run start'
+  mounts:
+    '/': 'frontend'
+  relationships:
+    database: 'mariadb:db'
+
+# Backend application
+backend:
+  type: 'nodejs:20'
+  build:
+    flavor: 'nodejs'
+  web:
+    commands:
+      start: 'npm run start'
+  mounts:
+    '/': 'backend'
+  relationships:
+    database: 'mariadb:db'

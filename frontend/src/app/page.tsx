@@ -1,95 +1,113 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import styles from './HomePage.module.scss';
+
+type Nft = {
+  tokenId: string;
+  name: string;
+  description: string;
+  rarity: string;
+  rarityRank: string;
+  image: string;
+  benefits?: CollectionBenefit[];
+};
+
+type CollectionBenefit = {
+  id: number;
+  contract_address: string;
+  token_id: string;
+  short_title: string;
+  long_title: string;
+  short_description: string;
+  long_description: string;
+  thumbnail: string;
+  valid_from: string;
+  valid_to: string;
+  url: string;
+  action_date: string;
+};
+
+const HomePage: React.FC = () => {
+  const [nfts, setNfts] = useState<Nft[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchNftData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:3001/api/benefits?limit=5', {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        });
+
+        setNfts(response.data);
+      } catch (err) {
+        console.error('Error fetching NFTs with benefits:', err);
+        setError('Failed to load NFT data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNftData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    <div className={styles.container}>
+      <h1 className={styles.h1}>Benefits</h1>
+      {nfts.length === 0 ? (
+        <p>No NFTs available.</p>
+      ) : (
+        <ul>
+          {nfts.map((nft) => (
+            <li key={nft.tokenId} className={styles.nftItem}>
+              <div className={styles.nftDetails}>
+                <h2>{nft.name}</h2>
+                <p>{nft.description}</p>
+                <br />
+                <p>Rarity: {nft.rarity}</p> 
+                <p>Rarity Rank: {nft.rarityRank}</p> 
+              </div>
+              <div className={styles.benefitContainer}>
+                {nft.benefits && nft.benefits.length > 0 && (
+                  <div>
+                    <ul>
+                      {nft.benefits.map((benefit) => (
+                        <li key={benefit.id} className={styles.benefitItem}>
+                          <div>
+                            <h4>{benefit.short_title}</h4>
+                            <p>{benefit.short_description}</p>
+                          </div>
+                          <img
+                            src={nft.image ? nft.image : './images/bored-ape-thumbnail.png'}
+                            className={styles.benefitThumbnail}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
-}
+};
+
+export default HomePage;

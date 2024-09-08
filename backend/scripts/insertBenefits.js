@@ -1,19 +1,39 @@
-const axios = require('axios');
-const mysql = require('mysql2');
 require('dotenv').config({ path: '../.env' });
+const mysql = require('mysql2/promise');
 
-const RESERVOIR_API_BASE_URL = 'https://api.reservoir.tools';
-const RESERVOIR_API_KEY = process.env.RESERVOIR_API_KEY; // Load API key from environment variables
+let dbConn;
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
-});
+const connectToDatabase = async () => {
+  try {
+    if (process.env.PLATFORM_RELATIONSHIPS) {
+      const decodedRelationships = Buffer.from(process.env.PLATFORM_RELATIONSHIPS, 'base64').toString('utf-8');
+      const database = JSON.parse(decodedRelationships);
+      const dbJSON = database.mariadb[0];
 
-const insertCollectionBenefits = (collectionAddress, tokenId, shortTitle, longTitle, shortDescription, longDescription, validFrom, validTo, url, actionDate) => {
+      dbConn= await mysql.createConnection({
+        host: dbJSON.host,
+        user: dbJSON.username,
+        password: dbJSON.password,
+        database: dbJSON.path,
+        port: dbJSON.port,
+      });
+    } else {
+      dbConn = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT
+      });
+    }
+    console.log('Database connected successfully');
+  } catch (error) {
+    console.error('Error connecting to the database:', error.message);
+    process.exit(1);
+  }
+};
+
+const insertCollectionBenefits = async (collectionAddress, tokenId, shortTitle, longTitle, shortDescription, longDescription, validFrom, validTo, url, actionDate) => {
   const benefitQuery = `
     INSERT INTO collection_benefits (
       contract_address,
@@ -42,16 +62,17 @@ const insertCollectionBenefits = (collectionAddress, tokenId, shortTitle, longTi
     actionDate
   ];
 
-  db.query(benefitQuery, benefitValues, (err, result) => {
-    if (err) {
-      console.error('Error inserting collection-level benefit:', err.message);
-    } else {
-      console.log(`Inserted collection-level benefit for collection: ${collectionAddress}`);
-    }
-  });
+  try {
+    const [result] = await dbConn.execute(benefitQuery, benefitValues);
+    console.log(`Inserted collection-level benefit for collection: ${collectionAddress}`);
+  } catch (err) {
+    console.error('Error inserting collection-level benefit:', err.message);
+  }
 };
 
 const main = async () => {
+  await connectToDatabase();
+
   const collections = [
     {
       benefit: {
@@ -61,10 +82,10 @@ const main = async () => {
         longTitle: 'Exclusive Access to Doodles Community Perks',
         shortDescription: 'Exclusive 20% off Travel Transfers via GetTransfer',
         longDescription: 'Enjoy a 20% discount on all travel transfers via GetTransfer for Doodles holders.',
-        validFrom: '2024-06-01T00:00:00+00:00',
-        validTo: '2024-12-31T00:00:00+00:00',
+        validFrom: '2024-06-01 00:00:00',
+        validTo: '2024-12-31 00:00:00',
         url: 'the-miracle.io/doodles',
-        actionDate: '2024-06-15T00:00:00+00:00'
+        actionDate: '2024-06-15 00:00:00'
       }
     }
   ];
@@ -72,7 +93,7 @@ const main = async () => {
   try {
     for (const collection of collections) {
       console.log(`Inserting collection-level benefits for collection: ${collection.benefit.contract_address}...`);
-      insertCollectionBenefits(
+      await insertCollectionBenefits(
         collection.benefit.contract_address,
         collection.benefit.token_id,
         collection.benefit.shortTitle,
@@ -88,7 +109,8 @@ const main = async () => {
   } catch (error) {
     console.error('Error during fetching and inserting process:', error.message);
   } finally {
-    db.end();
+    await dbConn.end();
+    console.log('Database connection closed');
   }
 };
 

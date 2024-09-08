@@ -13,36 +13,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const axios_1 = __importDefault(require("axios"));
 const database_1 = __importDefault(require("../database"));
+const reservoirService_1 = require("../services/reservoirService");
 const router = express_1.default.Router();
-const RESERVOIR_API_BASE_URL = 'https://api.reservoir.tools';
-const RESERVOIR_API_KEY = process.env.RESERVOIR_API_KEY;
-const fetchNftsFromReservoir = (collectionAddress_1, ...args_1) => __awaiter(void 0, [collectionAddress_1, ...args_1], void 0, function* (collectionAddress, limit = 5) {
-    try {
-        const response = yield axios_1.default.get(`${RESERVOIR_API_BASE_URL}/tokens/v5`, {
-            headers: {
-                'x-api-key': RESERVOIR_API_KEY,
-            },
-            params: {
-                collection: collectionAddress,
-                limit: limit.toString(),
-            },
-        });
-        return response.data.tokens;
-    }
-    catch (error) {
-        console.error('Error fetching NFTs from Reservoir:', error.message);
-        throw new Error('Failed to fetch NFTs from Reservoir');
-    }
-});
 router.get('/benefits', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const collections = [
         '0x8a90cab2b38dba80c64b7734e58ee1db38b8992e', // Doodles
     ];
     const limit = req.query.limit ? parseInt(req.query.limit, 10) : 10;
     try {
-        const nftPromises = collections.map((collectionAddress) => fetchNftsFromReservoir(collectionAddress, limit));
+        const nftPromises = collections.map((collectionAddress) => (0, reservoirService_1.fetchNftsFromReservoir)(collectionAddress, limit));
         const nftResults = yield Promise.all(nftPromises);
         const nfts = nftResults.flat(1);
         const placeholders = collections.map(() => '?').join(',');
@@ -77,6 +57,8 @@ router.get('/benefits', (req, res) => __awaiter(void 0, void 0, void 0, function
                 tokenId: nft.token.tokenId,
                 name: nft.token.name || 'Unknown NFT',
                 description: nft.token.description || 'No description available',
+                rarity: nft.token.rarity,
+                rarityRank: nft.token.rarityRank,
                 image: nft.token.image || '/path/to/default-image.png',
                 benefits: benefits.filter((benefit) => benefit.contract_address === nft.token.contract),
             }));

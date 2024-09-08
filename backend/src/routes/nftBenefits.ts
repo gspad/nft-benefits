@@ -61,7 +61,7 @@ router.get('/benefits', async (req, res) => {
         description: nft.token.description || 'No description available', 
         rarity: nft.token.rarity,
         rarityRank: nft.token.rarityRank,
-        image: nft.token.image || '/path/to/default-image.png',
+        image: nft.token.image,
         benefits: benefits.filter(
           (benefit) => benefit.contract_address === nft.token.contract
         ),

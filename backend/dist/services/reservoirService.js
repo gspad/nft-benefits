@@ -12,12 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchNftsFromCollection = void 0;
+exports.fetchNftsFromReservoir = void 0;
 const axios_1 = __importDefault(require("axios"));
 const RESERVOIR_API_BASE_URL = 'https://api.reservoir.tools';
 const RESERVOIR_API_KEY = process.env.RESERVOIR_API_KEY;
-// Function to fetch NFTs from a specific collection
-const fetchNftsFromCollection = (collectionAddress_1, ...args_1) => __awaiter(void 0, [collectionAddress_1, ...args_1], void 0, function* (collectionAddress, limit = 5) {
+const fetchNftsFromReservoir = (collectionAddress_1, ...args_1) => __awaiter(void 0, [collectionAddress_1, ...args_1], void 0, function* (collectionAddress, limit = 5) {
     try {
         const response = yield axios_1.default.get(`${RESERVOIR_API_BASE_URL}/tokens/v5`, {
             headers: {
@@ -35,4 +34,4 @@ const fetchNftsFromCollection = (collectionAddress_1, ...args_1) => __awaiter(vo
         throw new Error('Failed to fetch NFTs from Reservoir');
     }
 });
-exports.fetchNftsFromCollection = fetchNftsFromCollection;
+exports.fetchNftsFromReservoir = fetchNftsFromReservoir;

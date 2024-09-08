@@ -36,16 +36,10 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const fetchNftData = async () => {
+
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:3001/api/benefits?limit=5', {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-          },
-        });
-
+        const response = await axios.get(`/api/benefits?limit=5`);
         setNfts(response.data);
       } catch (err) {
         console.error('Error fetching NFTs with benefits:', err);
@@ -87,7 +81,7 @@ const HomePage: React.FC = () => {
                   <div>
                     <ul>
                       {nft.benefits.map((benefit) => (
-                        <li key={benefit.id} className={styles.benefitItem}>
+                        <li key={`${nft.tokenId}-${benefit.id}`} className={styles.benefitItem}>
                           <div>
                             <h4>{benefit.short_title}</h4>
                             <p>{benefit.short_description}</p>

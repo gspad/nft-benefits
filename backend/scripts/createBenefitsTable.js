@@ -1,13 +1,34 @@
 require('dotenv').config({ path: '../.env' }); 
-const mysql = require('mysql2');
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
-});
+const mysql = require('mysql2/promise');
+
+const getDbConnection = async () => {
+  let dbConfig;
+
+  if (process.env.PLATFORM_RELATIONSHIPS) {
+    const decodedRelationships = Buffer.from(process.env.PLATFORM_RELATIONSHIPS, 'base64').toString('utf-8');
+    const database = JSON.parse(decodedRelationships);
+    const dbJSON = database.mariadb[0];
+
+    dbConfig = {
+      host: dbJSON.host,
+      user: dbJSON.username,
+      password: dbJSON.password,
+      database: dbJSON.path,
+      port: dbJSON.port,
+    };
+  } else {
+    dbConfig = {
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT
+    };
+  }
+
+  return mysql.createConnection(dbConfig);
+};
 
 const dropTableQuery = `
   DROP TABLE IF EXISTS collection_benefits;
@@ -30,23 +51,23 @@ const createTableQuery = `
   );
 `;
 
-const createTable = () => {
-  db.query(dropTableQuery, (err, result) => {
-    if (err) {
-      console.error('Error dropping table:', err.message);
-    } else {
-      console.log('Table `collection_benefits` dropped.');
-    }
-  });
+const createTable = async () => {
+  let dbConn;
+  try {
+    dbConn = await getDbConnection();
 
-  db.query(createTableQuery, (err, result) => {
-    if (err) {
-      console.error('Error creating table:', err.message);
-    } else {
-      console.log('Table `collection_benefits` created or already exists.');
+    await dbConn.query(dropTableQuery);
+    console.log('Table `collection_benefits` dropped.');
+
+    await dbConn.query(createTableQuery);
+    console.log('Table `collection_benefits` created.');
+  } catch (err) {
+    console.error('Error executing query:', err.message);
+  } finally {
+    if (dbConn) {
+      await dbConn.end();
     }
-    db.end(); 
-  });
+  }
 };
 
 createTable();

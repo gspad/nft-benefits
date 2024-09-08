@@ -1,0 +1,49 @@
+- name: frontend
+  type: 'nodejs:20'
+
+  disk: 512
+
+  source:
+    root: frontend 
+
+  web:
+    locations:
+      "/":
+        passthru: true  
+
+    commands:
+      start: |
+        npm run start
+
+  hooks:
+    build: |
+      npm install
+      npm run build 
+  
+
+- name: backend
+  type: 'nodejs:20'
+
+  disk: 512
+
+  source:
+    root: backend
+
+  relationships:
+    mariadb: 'mariadb:mysql'
+
+  web:
+    locations:
+      "/api":
+        passthru: true 
+
+    commands:
+      start: |
+        npm run start
+
+  hooks:
+    build: |
+      npm install 
+      npm run build
+
+

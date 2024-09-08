@@ -1,4 +1,11 @@
-# Each route describes how an incoming URL is going to be processed by Platform.sh.
 "https://{default}/":
-    type: upstream
-    upstream: "app:http"
+  type: upstream
+  upstream: "frontend:http" 
+  cache:
+    enabled: false      
+
+"https://{default}/api":
+  type: upstream
+  upstream: "backend:http" 
+  cache:
+    enabled: false 

@@ -9,7 +9,7 @@ This project is deployed on Platform.sh and can be accessed at https://main-bvxe
 ### Prerequisites
 
 - Node.js (>= 20.15.0)
-- MySQL
+- A running MySQL database
 
 ### Installation
 

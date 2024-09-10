@@ -1,10 +1,9 @@
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
-// For local development
 dotenv.config();
 
-let db: any;
+let poolConfig: any;
 
 // Check if the app is running on Platform.sh
 if (process.env.PLATFORM_RELATIONSHIPS) {
@@ -12,32 +11,42 @@ if (process.env.PLATFORM_RELATIONSHIPS) {
   const database = JSON.parse(decodedRelationships);
   const dbConfig = database.mariadb[0];
 
-  db = {
+  poolConfig = {
     host: dbConfig.host,
     user: dbConfig.username,
     password: dbConfig.password,
     database: dbConfig.path,
     port: dbConfig.port,
+    waitForConnections: true,
+    connectionLimit: 10, 
+    queueLimit: 0       
   };
 } else {
   // Local development environment
-  db = {
+  poolConfig = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+    waitForConnections: true,
+    connectionLimit: 10, 
+    queueLimit: 0       
   };
 }
 
-const connection = mysql.createConnection(db);
+const db = mysql.createPool(poolConfig);
 
-connection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to the database:', err.message);
-  } else {
-    console.log('Connected to the MySQL database.');
-  }
+// Function to execute queries using the pool
+const query = async (sql: string, values?: any) => {
+  const [rows] = await db.query(sql, values);
+  return rows;
+};
+
+// Handle pool closing gracefully
+process.on('SIGTERM', async () => {
+  await db.end();
+  console.log('Database connection pool closed.');
 });
 
-export default connection;
+export { db, query };

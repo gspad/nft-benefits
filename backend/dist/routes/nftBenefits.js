@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const database_1 = __importDefault(require("../database"));
+const database_1 = require("../database");
 const reservoirService_1 = require("../services/reservoirService");
 const router = express_1.default.Router();
 router.get('/benefits', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -26,44 +26,39 @@ router.get('/benefits', (req, res) => __awaiter(void 0, void 0, void 0, function
         const nftResults = yield Promise.all(nftPromises);
         const nfts = nftResults.flat(1);
         const placeholders = collections.map(() => '?').join(',');
-        const query = `SELECT * FROM collection_benefits WHERE contract_address IN (${placeholders})`;
-        database_1.default.query(query, collections, (err, results) => {
-            if (err) {
-                console.error('Error fetching collection benefits:', err.message);
-                return res.status(500).send('Error fetching collection benefits');
-            }
-            if (!Array.isArray(results)) {
-                console.error('Invalid results format:', results);
-                return res.status(500).send('Invalid results format');
-            }
-            const benefits = results.map((result) => ({
-                _id: result._id,
-                short_title: result.short_title,
-                long_title: result.long_title,
-                short_description: result.short_description,
-                long_description: result.long_description,
-                thumbnail: result.thumbnail,
-                contract_address: result.contract_address,
-                token_id: result.token_id,
-                valid_from: result.valid_from,
-                valid_to: result.valid_to,
-                url: result.url,
-                action_date: result.action_date,
-            }));
-            console.log('Benefits fetched:', benefits);
-            // Combine NFTs with their associated benefits
-            const combinedData = nfts.map((nft) => ({
-                contract: nft.token.contract,
-                tokenId: nft.token.tokenId,
-                name: nft.token.name || 'Unknown NFT',
-                description: nft.token.description || 'No description available',
-                rarity: nft.token.rarity,
-                rarityRank: nft.token.rarityRank,
-                image: nft.token.image || '/path/to/default-image.png',
-                benefits: benefits.filter((benefit) => benefit.contract_address === nft.token.contract),
-            }));
-            res.json(combinedData);
-        });
+        const sql = `SELECT * FROM collection_benefits WHERE contract_address IN (${placeholders})`;
+        const results = yield (0, database_1.query)(sql, collections);
+        if (!Array.isArray(results)) {
+            console.error('Invalid results format:', results);
+            return res.status(500).send('Invalid results format');
+        }
+        const benefits = results.map((result) => ({
+            _id: result._id,
+            short_title: result.short_title,
+            long_title: result.long_title,
+            short_description: result.short_description,
+            long_description: result.long_description,
+            thumbnail: result.thumbnail,
+            contract_address: result.contract_address,
+            token_id: result.token_id,
+            valid_from: result.valid_from,
+            valid_to: result.valid_to,
+            url: result.url,
+            action_date: result.action_date,
+        }));
+        console.log('Benefits fetched:', benefits);
+        // Combine NFTs with their associated benefits
+        const combinedData = nfts.map((nft) => ({
+            contract: nft.token.contract,
+            tokenId: nft.token.tokenId,
+            name: nft.token.name || 'Unknown NFT',
+            description: nft.token.description || 'No description available',
+            rarity: nft.token.rarity,
+            rarityRank: nft.token.rarityRank,
+            image: nft.token.image,
+            benefits: benefits.filter((benefit) => benefit.contract_address === nft.token.contract),
+        }));
+        res.json(combinedData);
     }
     catch (error) {
         console.error('Error fetching NFTs and benefits:', error.message);

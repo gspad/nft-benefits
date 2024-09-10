@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import nftRoutes from './routes/nftBenefits';
-import db from './database';
 
 const app = express();
 app.use(cors());

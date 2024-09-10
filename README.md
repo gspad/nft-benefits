@@ -57,15 +57,9 @@ This project is deployed on Platform.sh and can be accessed at https://main-bvxe
 
 ### Database Setup
 
-1. Create the `collection_benefits` table:
    ```bash
    cd backend/scripts
-   node createBenefitsTable.js
-   ```
-
-2. Insert initial benefits data:
-   ```bash
-   node insertBenefits.js
+   node init.js
    ```
 
 ## Project Structure

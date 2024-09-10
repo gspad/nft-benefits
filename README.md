@@ -2,6 +2,8 @@
 
 This project is a full-stack application that displays NFT benefits. It consists of a frontend built with Next.js and a backend built with Express.js and TypeScript. The backend connects to a MySQL database to fetch and insert NFT benefits.
 
+This project is deployed on Platform.sh and can be accessed at https://main-bvxea6i-bko4llqsldvs2.ch-1.platformsh.site.
+
 ## Getting Started
 
 ### Prerequisites
